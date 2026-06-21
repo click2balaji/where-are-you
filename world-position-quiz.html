@@ -1,0 +1,1621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Where Do You Stand? — Your Place Among 8 Billion</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #070b14;
+    --surface: #0d1424;
+    --surface2: #131d30;
+    --border: rgba(120,160,255,0.12);
+    --accent: #4f8eff;
+    --accent2: #a78bfa;
+    --accent3: #34d399;
+    --warn: #fb923c;
+    --text: #e8edf8;
+    --text-muted: #6b7fa3;
+    --text-dim: #3d4f6e;
+    --glow: rgba(79,142,255,0.18);
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  /* Stars background */
+  #stars-canvas {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none; z-index: 0;
+  }
+
+  .app {
+    position: relative; z-index: 1;
+    min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px;
+  }
+
+  .screen {
+    display: none;
+    width: 100%; max-width: 640px;
+    animation: fadeUp 0.5s ease both;
+  }
+  .screen.active { display: block; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── WELCOME ── */
+  .welcome-hero {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+  .globe-icon {
+    font-size: 64px;
+    display: block;
+    margin: 0 auto 20px;
+    animation: floatGlobe 4s ease-in-out infinite;
+    filter: drop-shadow(0 0 24px rgba(79,142,255,0.5));
+  }
+  @keyframes floatGlobe {
+    0%,100% { transform: translateY(0) rotate(-3deg); }
+    50% { transform: translateY(-12px) rotate(3deg); }
+  }
+  .welcome-hero h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(28px, 6vw, 48px);
+    font-weight: 800;
+    line-height: 1.1;
+    background: linear-gradient(135deg, #fff 30%, var(--accent2) 70%, var(--accent) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    margin-bottom: 16px;
+  }
+  .welcome-hero p {
+    color: var(--text-muted);
+    font-size: 16px;
+    line-height: 1.7;
+    max-width: 480px;
+    margin: 0 auto 12px;
+  }
+  .privacy-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(52,211,153,0.08);
+    border: 1px solid rgba(52,211,153,0.2);
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 12px;
+    color: var(--accent3);
+    margin-top: 8px;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 28px;
+    margin-bottom: 16px;
+  }
+  .card-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 14px;
+  }
+
+  /* Name section */
+  .name-options {
+    display: flex; gap: 8px; flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+  .name-tab {
+    padding: 8px 16px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .name-tab.active, .name-tab:hover {
+    background: rgba(79,142,255,0.12);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .name-input-wrap { position: relative; }
+  .name-input {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 18px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .name-input:focus { border-color: var(--accent); }
+  .name-input::placeholder { color: var(--text-dim); }
+
+  .random-names-list {
+    display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px;
+  }
+  .random-name-pill {
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text-muted);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .random-name-pill:hover, .random-name-pill.selected {
+    background: rgba(167,139,250,0.12);
+    border-color: var(--accent2);
+    color: var(--accent2);
+  }
+
+  /* Location permission */
+  .location-permission {
+    display: flex; align-items: flex-start; gap: 14px;
+  }
+  .loc-icon {
+    font-size: 28px; flex-shrink: 0;
+    filter: drop-shadow(0 0 8px rgba(79,142,255,0.4));
+  }
+  .loc-text h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 15px; font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .loc-text p {
+    font-size: 13px; color: var(--text-muted); line-height: 1.6;
+  }
+  .loc-purpose {
+    font-size: 12px;
+    color: var(--accent3);
+    margin-top: 6px;
+    font-style: italic;
+  }
+  .loc-deny {
+    font-size: 12px; color: var(--text-dim);
+    margin-top: 4px;
+  }
+  .loc-buttons { display: flex; gap: 8px; margin-top: 14px; }
+  .btn-allow {
+    padding: 10px 20px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border: none; border-radius: 10px;
+    color: #fff; font-family: 'DM Sans', sans-serif;
+    font-size: 13px; font-weight: 500;
+    cursor: pointer; transition: opacity 0.2s;
+  }
+  .btn-allow:hover { opacity: 0.85; }
+  .btn-deny {
+    padding: 10px 20px;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text-muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px; cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-deny:hover { border-color: var(--text-muted); color: var(--text); }
+
+  .btn-start {
+    width: 100%;
+    padding: 18px;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+    border: none; border-radius: 14px;
+    color: #fff;
+    font-family: 'Syne', sans-serif;
+    font-size: 17px; font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 8px 32px rgba(79,142,255,0.3);
+    margin-top: 8px;
+  }
+  .btn-start:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(79,142,255,0.45);
+  }
+
+  /* ── QUESTION SCREEN ── */
+  .q-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 28px;
+  }
+  .q-progress-wrap { flex: 1; }
+  .q-act-label {
+    font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--text-dim); margin-bottom: 8px;
+  }
+  .q-progress-bar {
+    height: 3px; background: var(--surface2);
+    border-radius: 2px; overflow: hidden;
+  }
+  .q-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 2px;
+    transition: width 0.5s ease;
+  }
+  .q-counter {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px; color: var(--text-dim);
+    margin-left: 20px; flex-shrink: 0;
+  }
+
+  .q-fact {
+    background: rgba(79,142,255,0.06);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 8px 8px 0;
+    padding: 10px 16px;
+    font-size: 13px;
+    color: var(--text-muted);
+    font-style: italic;
+    margin-bottom: 24px;
+    line-height: 1.6;
+    animation: factSlide 0.4s ease both 0.1s;
+  }
+  @keyframes factSlide {
+    from { opacity: 0; transform: translateX(-10px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  .q-text {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(20px, 4vw, 28px);
+    font-weight: 700;
+    line-height: 1.3;
+    margin-bottom: 28px;
+    color: var(--text);
+  }
+
+  .q-options {
+    display: grid; gap: 10px;
+  }
+  .q-option {
+    display: flex; align-items: center; gap: 14px;
+    padding: 16px 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: left;
+    width: 100%;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .q-option:hover {
+    background: rgba(79,142,255,0.08);
+    border-color: rgba(79,142,255,0.3);
+    transform: translateX(4px);
+  }
+  .q-option.selected {
+    background: rgba(79,142,255,0.12);
+    border-color: var(--accent);
+  }
+  .q-option-emoji { font-size: 22px; flex-shrink: 0; }
+  .q-option-text { font-size: 15px; color: var(--text); flex: 1; }
+  .q-option-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+  /* Currency selector */
+  .currency-row {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .currency-label { font-size: 13px; color: var(--text-muted); }
+  .currency-select {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 6px 12px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    outline: none;
+    cursor: pointer;
+  }
+  .currency-select:focus { border-color: var(--accent); }
+
+  /* Country search */
+  .country-search {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: var(--text);
+    outline: none;
+    margin-bottom: 10px;
+    transition: border-color 0.2s;
+  }
+  .country-search:focus { border-color: var(--accent); }
+  .country-search::placeholder { color: var(--text-dim); }
+  .country-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 8px; max-height: 240px; overflow-y: auto;
+  }
+  .country-grid::-webkit-scrollbar { width: 4px; }
+  .country-grid::-webkit-scrollbar-track { background: transparent; }
+  .country-grid::-webkit-scrollbar-thumb { background: var(--text-dim); border-radius: 2px; }
+  .country-btn {
+    padding: 10px 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text-muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s;
+  }
+  .country-btn:hover, .country-btn.selected {
+    background: rgba(79,142,255,0.1);
+    border-color: var(--accent);
+    color: var(--text);
+  }
+  .detected-country {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 14px;
+    background: rgba(52,211,153,0.08);
+    border: 1px solid rgba(52,211,153,0.2);
+    border-radius: 10px;
+    font-size: 13px; color: var(--accent3);
+    margin-bottom: 12px;
+    cursor: pointer;
+  }
+
+  .btn-next {
+    width: 100%; margin-top: 20px;
+    padding: 16px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border: none; border-radius: 12px;
+    color: #fff; font-family: 'Syne', sans-serif;
+    font-size: 16px; font-weight: 700;
+    cursor: pointer; transition: all 0.2s;
+    box-shadow: 0 6px 24px rgba(79,142,255,0.25);
+    opacity: 0.4; pointer-events: none;
+  }
+  .btn-next.ready { opacity: 1; pointer-events: all; }
+  .btn-next.ready:hover { transform: translateY(-2px); box-shadow: 0 10px 32px rgba(79,142,255,0.4); }
+
+  /* ── CALCULATING ── */
+  #screen-calc {
+    text-align: center;
+  }
+  .calc-orb {
+    width: 160px; height: 160px;
+    margin: 0 auto 32px;
+    border-radius: 50%;
+    position: relative;
+    animation: orbPulse 2s ease-in-out infinite;
+  }
+  .calc-orb-inner {
+    width: 100%; height: 100%; border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #6ba8ff, #3b5bdb 40%, #1e1b4b 75%);
+    box-shadow: 0 0 60px rgba(79,142,255,0.5), 0 0 120px rgba(79,142,255,0.2), inset 0 0 40px rgba(255,255,255,0.05);
+  }
+  @keyframes orbPulse {
+    0%,100% { transform: scale(1); }
+    50% { transform: scale(1.06); }
+  }
+  .calc-text {
+    font-family: 'Syne', sans-serif;
+    font-size: 22px; font-weight: 700;
+    margin-bottom: 12px;
+  }
+  .calc-sub { color: var(--text-muted); font-size: 14px; }
+  .calc-steps { margin-top: 24px; display: flex; flex-direction: column; gap: 8px; }
+  .calc-step {
+    font-size: 13px; color: var(--text-dim);
+    animation: stepFade 0.5s ease both;
+  }
+  @keyframes stepFade { from { opacity: 0; } to { opacity: 1; } }
+
+  /* ── RESULTS ── */
+  #screen-result { max-width: 700px; }
+
+  .result-hero { text-align: center; margin-bottom: 40px; }
+  .result-orb-wrap {
+    position: relative; width: 180px; height: 180px;
+    margin: 0 auto 28px;
+  }
+  .result-orb {
+    width: 100%; height: 100%; border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #7bc0ff, #3b5bdb 40%, #1e1b4b 75%);
+    box-shadow: 0 0 80px rgba(79,142,255,0.6), 0 0 160px rgba(79,142,255,0.2);
+    animation: resultOrb 4s ease-in-out infinite;
+    position: relative; z-index: 1;
+  }
+  .result-orb-rings {
+    position: absolute; inset: -20px;
+    border-radius: 50%;
+    border: 1px solid rgba(79,142,255,0.15);
+    animation: ringExpand 3s ease-in-out infinite;
+  }
+  .result-orb-rings::before {
+    content: '';
+    position: absolute; inset: -20px;
+    border-radius: 50%;
+    border: 1px solid rgba(167,139,250,0.1);
+    animation: ringExpand 3s ease-in-out infinite 1s;
+  }
+  @keyframes ringExpand {
+    0%,100% { transform: scale(1); opacity: 0.5; }
+    50% { transform: scale(1.15); opacity: 0.15; }
+  }
+  @keyframes resultOrb {
+    0%,100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+  .result-score-big {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(36px, 8vw, 60px);
+    font-weight: 800;
+    background: linear-gradient(135deg, #fff 30%, var(--accent2) 70%, var(--accent));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    margin-bottom: 8px;
+  }
+  .result-village {
+    font-size: 16px; color: var(--text-muted);
+    line-height: 1.7; max-width: 480px; margin: 0 auto 16px;
+  }
+  .result-village strong { color: var(--text); }
+  .result-quip {
+    display: inline-block;
+    background: rgba(167,139,250,0.1);
+    border: 1px solid rgba(167,139,250,0.2);
+    border-radius: 20px;
+    padding: 8px 20px;
+    font-size: 14px; color: var(--accent2);
+    font-style: italic;
+  }
+
+  /* Dimension bars */
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px; font-weight: 700;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--text-dim); margin-bottom: 16px;
+  }
+  .dim-grid { display: flex; flex-direction: column; gap: 14px; margin-bottom: 24px; }
+  .dim-item {}
+  .dim-row {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 6px;
+  }
+  .dim-name { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+  .dim-score-label {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px; font-weight: 700;
+    color: var(--accent);
+  }
+  .dim-bar-track {
+    height: 6px; background: var(--surface2);
+    border-radius: 3px; overflow: hidden;
+  }
+  .dim-bar-fill {
+    height: 100%; border-radius: 3px;
+    transition: width 1.2s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  .dim-quip { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+
+  /* Action cards */
+  .action-cards { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
+  .action-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    display: flex; gap: 16px; align-items: flex-start;
+    transition: border-color 0.2s;
+  }
+  .action-card:hover { border-color: rgba(79,142,255,0.3); }
+  .action-card-icon { font-size: 28px; flex-shrink: 0; }
+  .action-card-body { flex: 1; }
+  .action-card-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 15px; font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .action-card-text { font-size: 13px; color: var(--text-muted); line-height: 1.6; margin-bottom: 10px; }
+  .action-card-link {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 13px; color: var(--accent);
+    text-decoration: none; font-weight: 500;
+    transition: gap 0.2s;
+  }
+  .action-card-link:hover { gap: 10px; }
+
+  /* Bookmark note */
+  .bookmark-note {
+    text-align: center;
+    padding: 20px;
+    background: rgba(52,211,153,0.05);
+    border: 1px solid rgba(52,211,153,0.12);
+    border-radius: 14px;
+    margin-bottom: 20px;
+  }
+  .bookmark-note p { font-size: 14px; color: var(--text-muted); line-height: 1.7; }
+  .bookmark-note strong { color: var(--accent3); }
+
+  /* Retake */
+  .btn-retake {
+    width: 100%; padding: 16px;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    color: var(--text-muted);
+    font-family: 'Syne', sans-serif;
+    font-size: 15px; font-weight: 600;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .btn-retake:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* Data sources */
+  .data-sources {
+    margin-top: 24px; padding-top: 20px;
+    border-top: 1px solid var(--border);
+    font-size: 11px; color: var(--text-dim);
+    line-height: 1.8;
+    text-align: center;
+  }
+
+  /* Village visual */
+  .village-grid {
+    display: flex; flex-wrap: wrap;
+    gap: 3px; justify-content: center;
+    margin: 20px 0; max-width: 360px; margin-left: auto; margin-right: auto;
+  }
+  .village-person { font-size: 14px; transition: all 0.3s; }
+  .village-person.highlight { filter: brightness(1.5); transform: scale(1.2); }
+
+  /* Theme toggle */
+  .theme-toggle {
+    position: fixed; top: 20px; right: 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 8px 14px;
+    font-size: 13px; color: var(--text-muted);
+    cursor: pointer; z-index: 100;
+    transition: all 0.2s;
+  }
+  .theme-toggle:hover { border-color: var(--accent); color: var(--text); }
+
+  body.light {
+    --bg: #f4f6fb;
+    --surface: #ffffff;
+    --surface2: #edf0f7;
+    --border: rgba(79,142,255,0.15);
+    --text: #0d1424;
+    --text-muted: #4a5568;
+    --text-dim: #a0aec0;
+    --glow: rgba(79,142,255,0.1);
+  }
+  body.light .welcome-hero h1 { -webkit-text-fill-color: transparent; }
+
+  @media (max-width: 480px) {
+    .app { padding: 16px; align-items: flex-start; padding-top: 60px; }
+    .country-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  /* SOURCES LINK */
+  .sources-trigger {
+    display: block; text-align: center;
+    margin-top: 14px; margin-bottom: 2px;
+    font-size: 13px; color: var(--text-dim);
+    cursor: pointer; background: none; border: none;
+    font-family: "DM Sans", sans-serif;
+    transition: color 0.2s; width: 100%;
+  }
+  .sources-trigger:hover { color: var(--accent); }
+  .sources-trigger span { text-decoration: underline; text-underline-offset: 3px; }
+
+  /* MODAL */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0; z-index: 200;
+    background: rgba(4,8,18,0.88);
+    backdrop-filter: blur(6px);
+    align-items: center; justify-content: center;
+    padding: 20px;
+  }
+  .modal-overlay.open { display: flex; animation: fadeIn 0.25s ease; }
+  @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 32px;
+    max-width: 560px; width: 100%;
+    max-height: 85vh; overflow-y: auto;
+    position: relative;
+    animation: modalUp 0.3s ease;
+  }
+  @keyframes modalUp { from { transform: translateY(20px); opacity:0; } to { transform: translateY(0); opacity:1; } }
+  .modal::-webkit-scrollbar { width: 4px; }
+  .modal::-webkit-scrollbar-thumb { background: var(--text-dim); border-radius: 2px; }
+  .modal-close {
+    position: absolute; top: 18px; right: 20px;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 50%; width: 32px; height: 32px;
+    color: var(--text-muted); font-size: 16px;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+  }
+  .modal-close:hover { color: var(--text); border-color: var(--text-muted); }
+  .modal h2 {
+    font-family: "Syne", sans-serif;
+    font-size: 22px; font-weight: 800; margin-bottom: 6px;
+  }
+  .modal-tagline { font-size: 14px; color: var(--text-muted); margin-bottom: 28px; line-height: 1.6; }
+  .modal-section { margin-bottom: 26px; }
+  .modal-section-title {
+    font-family: "Syne", sans-serif;
+    font-size: 11px; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--text-dim); margin-bottom: 12px;
+  }
+  .modal-section p { font-size: 14px; color: var(--text-muted); line-height: 1.7; }
+  .modal-section p + p { margin-top: 10px; }
+  .modal-section strong { color: var(--text); }
+  .source-list { display: flex; flex-direction: column; gap: 8px; }
+  .source-item {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 12px 14px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px; text-decoration: none;
+    transition: border-color 0.2s;
+  }
+  .source-item:hover { border-color: var(--accent); }
+  .source-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+  .source-name { font-size: 14px; font-weight: 500; color: var(--text); display: block; margin-bottom: 2px; }
+  .source-desc { font-size: 12px; color: var(--text-muted); }
+  .modal-disclaimer {
+    background: rgba(251,146,60,0.07);
+    border: 1px solid rgba(251,146,60,0.2);
+    border-radius: 12px; padding: 14px 16px;
+    font-size: 13px; color: var(--text-muted); line-height: 1.7;
+  }
+  .modal-disclaimer strong { color: #fb923c; }
+  .modal-intention {
+    background: rgba(79,142,255,0.07);
+    border: 1px solid rgba(79,142,255,0.18);
+    border-radius: 12px; padding: 16px 18px;
+    font-size: 15px; color: var(--text); line-height: 1.7;
+    font-style: italic; text-align: center;
+  }
+  .result-disclaimer {
+    text-align: center; font-size: 12px; color: var(--text-dim);
+    margin-top: -8px; margin-bottom: 20px; line-height: 1.6;
+  }
+  .result-disclaimer button {
+    background: none; border: none; color: var(--accent);
+    font-size: 12px; cursor: pointer;
+    text-decoration: underline; text-underline-offset: 2px;
+    font-family: "DM Sans", sans-serif; padding: 0;
+  }
+</style>
+</head>
+<body>
+
+<canvas id="stars-canvas"></canvas>
+
+<!-- SOURCES MODAL -->
+<div class="modal-overlay" id="sources-modal" onclick="closeModal(event)">
+  <div class="modal">
+    <button class="modal-close" onclick="closeSourcesModal()">✕</button>
+    <h2>📖 How This Works</h2>
+    <p class="modal-tagline">Everything behind this quiz — where the data comes from, how it was built, and what it is (and is not).</p>
+
+    <div class="modal-section">
+      <div class="modal-section-title">🌍 Where the Data Comes From</div>
+      <div class="source-list">
+        <a class="source-item" href="https://worldhappiness.report" target="_blank" rel="noopener">
+          <span class="source-icon">😊</span>
+          <div><span class="source-name">World Happiness Report — Gallup</span><span class="source-desc">Annual global survey on life satisfaction, social support, and freedom across 140+ countries.</span></div>
+        </a>
+        <a class="source-item" href="https://hdr.undp.org/data-center/human-development-index" target="_blank" rel="noopener">
+          <span class="source-icon">🇺🇳</span>
+          <div><span class="source-name">UN Human Development Index (HDI)</span><span class="source-desc">Measures country-level quality of life combining income, education, and life expectancy.</span></div>
+        </a>
+        <a class="source-item" href="https://data.worldbank.org/indicator/NY.GDP.PCAP.PP.CD" target="_blank" rel="noopener">
+          <span class="source-icon">🏦</span>
+          <div><span class="source-name">World Bank — GDP per Capita (PPP)</span><span class="source-desc">Income data adjusted for purchasing power so ,000 in India vs Germany is compared fairly.</span></div>
+        </a>
+        <a class="source-item" href="https://www.iqair.com/world-air-quality-report" target="_blank" rel="noopener">
+          <span class="source-icon">🌬️</span>
+          <div><span class="source-name">IQAir / WHO Air Quality Index</span><span class="source-desc">Real-world PM2.5 pollution data by country and city, updated annually.</span></div>
+        </a>
+        <a class="source-item" href="https://impact.economist.com/sustainability/project/food-security-index" target="_blank" rel="noopener">
+          <span class="source-icon">🍽️</span>
+          <div><span class="source-name">Global Food Security Index — Economist Impact</span><span class="source-desc">Tracks food affordability, availability, and quality across 113 countries.</span></div>
+        </a>
+        <a class="source-item" href="https://www.who.int/data/gho/data/themes/universal-health-coverage" target="_blank" rel="noopener">
+          <span class="source-icon">🏥</span>
+          <div><span class="source-name">WHO Universal Health Coverage Index</span><span class="source-desc">Measures access to essential health services for countries worldwide.</span></div>
+        </a>
+        <a class="source-item" href="https://data.worldbank.org/topic/water" target="_blank" rel="noopener">
+          <span class="source-icon">💧</span>
+          <div><span class="source-name">World Bank — Water &amp; Sanitation Data</span><span class="source-desc">Global access to clean drinking water and sanitation by country.</span></div>
+        </a>
+        <a class="source-item" href="https://www.oecdbetterlifeindex.org" target="_blank" rel="noopener">
+          <span class="source-icon">⏰</span>
+          <div><span class="source-name">OECD Better Life Index</span><span class="source-desc">Tracks work-life balance, leisure time, and wellbeing across OECD nations.</span></div>
+        </a>
+        <a class="source-item" href="https://www.swissre.com/institute/research/sigma-research" target="_blank" rel="noopener">
+          <span class="source-icon">📋</span>
+          <div><span class="source-name">Swiss Re Institute — Insurance Reports</span><span class="source-desc">Global data on insurance coverage gaps and financial protection by country.</span></div>
+        </a>
+      </div>
+    </div>
+
+    <div class="modal-section">
+      <div class="modal-section-title">🤖 Built With AI — What That Means</div>
+      <div class="modal-disclaimer">
+        <strong>Heads up:</strong> The questions, score weightings, and country benchmarks in this quiz were curated with the help of AI — specifically Claude by Anthropic. AI is good at synthesising large amounts of data, but it can make mistakes, miss nuance, or reflect biases in the underlying data.<br><br>
+        This is <strong>not a certified scientific assessment.</strong> No single quiz can fully capture the complexity of a human life. Treat your result as a thoughtful estimate — a starting point for reflection, not a final verdict.
+      </div>
+    </div>
+
+    <div class="modal-section">
+      <div class="modal-section-title">💙 Why We Built This</div>
+      <div class="modal-intention">
+        We built this to make you think — not to make you feel bad, and definitely not to judge anyone. Life is complicated and wildly unfair across the globe.<br><br>
+        Whatever your result, the only direction worth moving is forward. Even one small change — an emergency fund, a health plan, a new skill — can shift where you stand.<br><br>
+        <strong>No one is responsible for the output of this quiz</strong> except the data it draws from and the choices you make next.
+      </div>
+    </div>
+  </div>
+</div>
+
+<button class="theme-toggle" onclick="toggleTheme()">☀️ Light</button>
+
+<div class="app">
+
+  <!-- WELCOME -->
+  <div class="screen active" id="screen-welcome">
+    <div class="welcome-hero">
+      <span class="globe-icon">🌍</span>
+      <h1>Where Do You Stand Among 8 Billion?</h1>
+      <p>13 honest questions. Real global data. Find your position in the world — and what you can do about it.</p>
+      <span class="privacy-badge">🔒 Your answers never leave your device. Nothing is stored.</span>
+      <button class="sources-trigger" onclick="openSourcesModal()">📖 <span>How we built this · Data sources · AI disclaimer</span></button>
+    </div>
+
+    <!-- Name -->
+    <div class="card">
+      <div class="card-label">What should we call you?</div>
+      <div class="name-options">
+        <button class="name-tab active" onclick="setNameMode('real')">My real name</button>
+        <button class="name-tab" onclick="setNameMode('random')">Pick for me</button>
+        <button class="name-tab" onclick="setNameMode('custom')">Stay anonymous</button>
+      </div>
+      <div id="name-real">
+        <input class="name-input" id="real-name-input" type="text" placeholder="Enter your name..." oninput="updateName(this.value)">
+      </div>
+      <div id="name-random" style="display:none">
+        <div class="random-names-list" id="random-names"></div>
+      </div>
+      <div id="name-custom" style="display:none">
+        <input class="name-input" id="custom-name-input" type="text" placeholder="Type any name (or leave as 'Earthling')..." oninput="updateName(this.value)">
+      </div>
+    </div>
+
+    <!-- Location permission -->
+    <div class="card">
+      <div class="location-permission">
+        <span class="loc-icon">📍</span>
+        <div class="loc-text">
+          <h3>May we detect your location?</h3>
+          <p>This helps us auto-fill your country and suggest the right currency — saving you a step.</p>
+          <p class="loc-purpose">✦ Purpose: country & currency pre-fill only. No coordinates are stored or transmitted.</p>
+          <p class="loc-deny">If you deny, no problem — you can select your country manually in the next step.</p>
+          <div class="loc-buttons">
+            <button class="btn-allow" onclick="requestLocation()">Yes, detect it</button>
+            <button class="btn-deny" onclick="skipLocation()">No thanks, I'll pick</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn-start" onclick="startQuiz()">Begin My World Audit →</button>
+  </div>
+
+  <!-- QUESTION -->
+  <div class="screen" id="screen-question">
+    <div class="q-header">
+      <div class="q-progress-wrap">
+        <div class="q-act-label" id="q-act-label">Act 1 · Where You Are</div>
+        <div class="q-progress-bar"><div class="q-progress-fill" id="q-progress-fill" style="width:0%"></div></div>
+      </div>
+      <div class="q-counter" id="q-counter">1 / 13</div>
+    </div>
+    <div class="q-fact" id="q-fact"></div>
+    <div class="q-text" id="q-text"></div>
+    <div id="q-body"></div>
+    <button class="btn-next" id="btn-next" onclick="nextQuestion()">Continue →</button>
+  </div>
+
+  <!-- CALCULATING -->
+  <div class="screen" id="screen-calc">
+    <div class="calc-orb">
+      <div class="calc-orb-inner"></div>
+    </div>
+    <div class="calc-text">Crunching 8 billion data points…</div>
+    <div class="calc-sub">Comparing your life to every human on Earth</div>
+    <div class="calc-steps" id="calc-steps"></div>
+  </div>
+
+  <!-- RESULT -->
+  <div class="screen" id="screen-result">
+    <div class="result-hero">
+      <div class="result-orb-wrap">
+        <div class="result-orb-rings"></div>
+        <div class="result-orb" id="result-orb"></div>
+      </div>
+      <div class="result-score-big" id="result-score-big"></div>
+      <div class="result-village" id="result-village"></div>
+      <div class="result-disclaimer">Scores are estimates based on global averages. Your real life is more complex than 13 questions. <button onclick="openSourcesModal()">See sources &amp; disclaimer →</button></div>
+      <div class="village-grid" id="village-grid"></div>
+      <span class="result-quip" id="result-quip"></span>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Your Life Breakdown</div>
+      <div class="dim-grid" id="dim-grid"></div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Your Move — What Could Change</div>
+      <div class="action-cards" id="action-cards"></div>
+    </div>
+
+    <div class="bookmark-note">
+      <p>📌 <strong>Bookmark this page.</strong> Come back in 6 months. See if your position in the world has shifted. No account needed — just you and the data.</p>
+    </div>
+
+    <button class="btn-retake" onclick="retake()">↺ Take it again</button>
+
+    <div class="data-sources">
+      Data sourced from: World Happiness Report · World Bank · UN HDI · IQAir/WHO · Global Food Security Index · OECD · Swiss Re Institute<br>
+      <button onclick="openSourcesModal()" style="background:none;border:none;color:var(--accent);font-size:11px;cursor:pointer;text-decoration:underline;font-family:inherit;margin-top:6px;">View all sources, AI disclaimer &amp; our intention →</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── STARS ──
+const canvas = document.getElementById('stars-canvas');
+const ctx = canvas.getContext('2d');
+let stars = [];
+function initStars() {
+  canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+  stars = Array.from({length: 180}, () => ({
+    x: Math.random() * canvas.width, y: Math.random() * canvas.height,
+    r: Math.random() * 1.5 + 0.3, a: Math.random(),
+    speed: Math.random() * 0.003 + 0.001
+  }));
+}
+function drawStars() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  stars.forEach(s => {
+    s.a = Math.abs(Math.sin(Date.now() * s.speed));
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(180,210,255,${s.a * 0.7})`;
+    ctx.fill();
+  });
+  requestAnimationFrame(drawStars);
+}
+window.addEventListener('resize', initStars);
+initStars(); drawStars();
+
+// ── STATE ──
+let userName = 'Earthling';
+let nameMode = 'real';
+let detectedCountry = null;
+let detectedCurrency = null;
+let answers = {};
+let currentQ = 0;
+
+const RANDOM_NAMES = ['Copernicus','Hypatia','Galileo','Ada Lovelace','Ibn Battuta','Amelia Earhart','Marco Polo','Marie Curie','Nikola Tesla','Harriet Tubman','Carl Sagan','Valentina Tereshkova'];
+
+const CURRENCIES = [
+  {code:'USD',symbol:'$',name:'US Dollar',countries:['United States']},
+  {code:'EUR',symbol:'€',name:'Euro',countries:['Germany','France','Italy','Spain','Netherlands','Belgium','Portugal','Greece','Austria','Finland','Ireland','Luxembourg','Malta','Cyprus','Slovakia','Slovenia','Estonia','Latvia','Lithuania']},
+  {code:'GBP',symbol:'£',name:'British Pound',countries:['United Kingdom']},
+  {code:'INR',symbol:'₹',name:'Indian Rupee',countries:['India']},
+  {code:'CNY',symbol:'¥',name:'Chinese Yuan',countries:['China']},
+  {code:'JPY',symbol:'¥',name:'Japanese Yen',countries:['Japan']},
+  {code:'BRL',symbol:'R$',name:'Brazilian Real',countries:['Brazil']},
+  {code:'CAD',symbol:'CA$',name:'Canadian Dollar',countries:['Canada']},
+  {code:'AUD',symbol:'A$',name:'Australian Dollar',countries:['Australia']},
+  {code:'MXN',symbol:'MX$',name:'Mexican Peso',countries:['Mexico']},
+  {code:'IDR',symbol:'Rp',name:'Indonesian Rupiah',countries:['Indonesia']},
+  {code:'PKR',symbol:'₨',name:'Pakistani Rupee',countries:['Pakistan']},
+  {code:'NGN',symbol:'₦',name:'Nigerian Naira',countries:['Nigeria']},
+  {code:'BDT',symbol:'৳',name:'Bangladeshi Taka',countries:['Bangladesh']},
+  {code:'RUB',symbol:'₽',name:'Russian Ruble',countries:['Russia']},
+  {code:'ZAR',symbol:'R',name:'South African Rand',countries:['South Africa']},
+  {code:'EGP',symbol:'E£',name:'Egyptian Pound',countries:['Egypt']},
+  {code:'ARS',symbol:'$',name:'Argentine Peso',countries:['Argentina']},
+  {code:'KRW',symbol:'₩',name:'South Korean Won',countries:['South Korea']},
+  {code:'SAR',symbol:'﷼',name:'Saudi Riyal',countries:['Saudi Arabia']},
+  {code:'TRY',symbol:'₺',name:'Turkish Lira',countries:['Turkey']},
+  {code:'SGD',symbol:'S$',name:'Singapore Dollar',countries:['Singapore']},
+  {code:'THB',symbol:'฿',name:'Thai Baht',countries:['Thailand']},
+  {code:'VND',symbol:'₫',name:'Vietnamese Dong',countries:['Vietnam']},
+  {code:'MYR',symbol:'RM',name:'Malaysian Ringgit',countries:['Malaysia']},
+  {code:'PHP',symbol:'₱',name:'Philippine Peso',countries:['Philippines']},
+  {code:'KES',symbol:'KSh',name:'Kenyan Shilling',countries:['Kenya']},
+  {code:'GHS',symbol:'₵',name:'Ghanaian Cedi',countries:['Ghana']},
+  {code:'UAH',symbol:'₴',name:'Ukrainian Hryvnia',countries:['Ukraine']},
+  {code:'PLN',symbol:'zł',name:'Polish Zloty',countries:['Poland']},
+  {code:'SEK',symbol:'kr',name:'Swedish Krona',countries:['Sweden']},
+  {code:'NOK',symbol:'kr',name:'Norwegian Krone',countries:['Norway']},
+  {code:'CHF',symbol:'Fr',name:'Swiss Franc',countries:['Switzerland']},
+  {code:'NZD',symbol:'NZ$',name:'New Zealand Dollar',countries:['New Zealand']},
+  {code:'OTHER',symbol:'$',name:'Other',countries:[]}
+];
+
+// Income ranges in PPP monthly USD, displayed in local currency approx
+const INCOME_RANGES = [
+  {label:'Under {500}',ppp:250,score:5},
+  {label:'{500} – {2,000}',ppp:1250,score:25},
+  {label:'{2,000} – {5,000}',ppp:3500,score:50},
+  {label:'{5,000} – {15,000}',ppp:10000,score:75},
+  {label:'Over {15,000}',ppp:20000,score:95},
+];
+
+// Approx conversion factor for display (not exact, illustrative)
+const CURRENCY_PPP = {
+  USD:1, EUR:0.92, GBP:0.79, INR:83, CNY:7.1, JPY:150, BRL:5,
+  CAD:1.36, AUD:1.53, MXN:17, IDR:15500, PKR:278, NGN:1500,
+  BDT:110, RUB:90, ZAR:19, EGP:31, ARS:870, KRW:1330, SAR:3.75,
+  TRY:32, SGD:1.34, THB:36, VND:24000, MYR:4.7, PHP:57,
+  KES:150, GHS:12, UAH:38, PLN:4, SEK:10.5, NOK:10.6,
+  CHF:0.9, NZD:1.63, OTHER:1
+};
+
+const COUNTRIES = [
+  'Afghanistan','Albania','Algeria','Angola','Argentina','Australia','Austria','Azerbaijan',
+  'Bangladesh','Belgium','Bolivia','Bosnia','Brazil','Bulgaria','Cambodia','Cameroon',
+  'Canada','Chile','China','Colombia','Congo','Costa Rica','Croatia','Cuba','Czech Republic',
+  'Denmark','Dominican Republic','Ecuador','Egypt','El Salvador','Ethiopia','Finland','France',
+  'Georgia','Germany','Ghana','Greece','Guatemala','Haiti','Honduras','Hungary',
+  'India','Indonesia','Iran','Iraq','Ireland','Israel','Italy','Jamaica','Japan',
+  'Jordan','Kazakhstan','Kenya','South Korea','Kosovo','Kuwait','Kyrgyzstan','Laos',
+  'Latvia','Lebanon','Libya','Lithuania','Luxembourg','Malaysia','Mali','Mexico',
+  'Moldova','Mongolia','Morocco','Mozambique','Myanmar','Nepal','Netherlands','New Zealand',
+  'Nicaragua','Nigeria','North Korea','Norway','Pakistan','Palestine','Panama','Paraguay',
+  'Peru','Philippines','Poland','Portugal','Qatar','Romania','Russia','Rwanda',
+  'Saudi Arabia','Senegal','Serbia','Sierra Leone','Singapore','Slovakia','Slovenia',
+  'Somalia','South Africa','South Sudan','Spain','Sri Lanka','Sudan','Sweden',
+  'Switzerland','Syria','Taiwan','Tajikistan','Tanzania','Thailand','Togo','Tunisia',
+  'Turkey','Turkmenistan','Uganda','Ukraine','United Arab Emirates','United Kingdom',
+  'United States','Uruguay','Uzbekistan','Venezuela','Vietnam','Yemen','Zambia','Zimbabwe'
+];
+
+// Country → HDI score (0–100), Air Quality score (0–100), Healthcare score (0–100)
+const COUNTRY_DATA = {
+  'Norway':{hdi:92,air:85,health:88},'Switzerland':{hdi:96,air:80,health:90},
+  'Australia':{hdi:95,air:82,health:87},'Denmark':{hdi:95,air:83,health:89},
+  'Sweden':{hdi:95,air:84,health:88},'Netherlands':{hdi:94,air:75,health:87},
+  'Germany':{hdi:94,air:72,health:85},'Finland':{hdi:94,air:88,health:86},
+  'Singapore':{hdi:94,air:65,health:90},'United Kingdom':{hdi:93,air:70,health:83},
+  'Belgium':{hdi:93,air:68,health:82},'New Zealand':{hdi:93,air:90,health:85},
+  'Canada':{hdi:93,air:82,health:84},'Japan':{hdi:92,air:68,health:90},
+  'United States':{hdi:92,air:70,health:80},'South Korea':{hdi:93,air:55,health:86},
+  'France':{hdi:90,air:72,health:86},'Austria':{hdi:92,air:78,health:85},
+  'Israel':{hdi:91,air:60,health:85},'Ireland':{hdi:94,air:85,health:82},
+  'Spain':{hdi:90,air:68,health:86},'Italy':{hdi:89,air:65,health:85},
+  'Portugal':{hdi:87,air:75,health:82},'Greece':{hdi:88,air:68,health:78},
+  'Poland':{hdi:87,air:58,health:76},'Czech Republic':{hdi:90,air:62,health:80},
+  'Hungary':{hdi:85,air:60,health:74},'Slovakia':{hdi:86,air:62,health:76},
+  'Russia':{hdi:82,air:55,health:65},'China':{hdi:76,air:35,health:72},
+  'Brazil':{hdi:75,air:65,health:68},'Mexico':{hdi:76,air:50,health:65},
+  'Argentina':{hdi:83,air:68,health:70},'Turkey':{hdi:82,air:52,health:72},
+  'Iran':{hdi:78,air:40,health:68},'Thailand':{hdi:80,air:48,health:75},
+  'Malaysia':{hdi:80,air:52,health:74},'Colombia':{hdi:76,air:58,health:65},
+  'Peru':{hdi:76,air:55,health:62},'Ecuador':{hdi:75,air:65,health:62},
+  'South Africa':{hdi:71,air:58,health:58},'Egypt':{hdi:73,air:35,health:60},
+  'India':{hdi:64,air:22,health:55},'Vietnam':{hdi:70,air:35,health:65},
+  'Indonesia':{hdi:70,air:38,health:60},'Philippines':{hdi:70,air:45,health:60},
+  'Nigeria':{hdi:54,air:40,health:40},'Kenya':{hdi:60,air:50,health:45},
+  'Bangladesh':{hdi:66,air:18,health:55},'Pakistan':{hdi:55,air:20,health:48},
+  'Ethiopia':{hdi:48,air:45,health:38},'Afghanistan':{hdi:40,air:35,health:25},
+  'DEFAULT':{hdi:68,air:55,health:60}
+};
+
+function getCountryData(country) {
+  return COUNTRY_DATA[country] || COUNTRY_DATA['DEFAULT'];
+}
+
+const QUESTIONS = [
+  {
+    id:'country', act:'🌍 Act 1 · Where You Are',
+    fact:'"Your country of residence is the single strongest predictor of your life outcomes — it shapes your air, water, healthcare, and income ceiling before you make a single choice." — UN HDI Report',
+    text:'Which country do you live in?',
+    type:'country'
+  },
+  {
+    id:'income', act:'🌍 Act 1 · Where You Are',
+    fact:'"Half of the world\'s population — nearly 4 billion people — live on less than $6.85 a day." — World Bank, 2023',
+    text:'What is your monthly household income? (in your selected currency, adjusted for local purchasing power)',
+    type:'income'
+  },
+  {
+    id:'water', act:'🏠 Act 2 · How You Live',
+    fact:'"2.2 billion people still lack access to safely managed drinking water." — WHO / UNICEF 2023',
+    text:'Do you have access to clean, safe drinking water daily?',
+    type:'options',
+    options:[
+      {emoji:'💧',text:'Always — clean tap water at home',sub:'',score:100},
+      {emoji:'🪣',text:'Usually — mostly safe, occasional issues',sub:'',score:65},
+      {emoji:'⚠️',text:'Sometimes — often uncertain about quality',sub:'',score:30},
+      {emoji:'🏜️',text:'Rarely or never',sub:'Water is scarce or unsafe',score:5},
+    ]
+  },
+  {
+    id:'food', act:'🏠 Act 2 · How You Live',
+    fact:'"733 million people face hunger daily. Yet 1 in 3 calories produced globally are wasted." — Global Food Security Index 2023',
+    text:'How would you describe your food security?',
+    type:'options',
+    options:[
+      {emoji:'🍽️',text:'Always enough — I eat what I want',sub:'',score:100},
+      {emoji:'🥗',text:'Mostly enough — occasionally stretch',sub:'',score:72},
+      {emoji:'😟',text:'Sometimes struggle',sub:'Some days are tight',score:35},
+      {emoji:'😔',text:'Often not enough',sub:'Food is a daily concern',score:8},
+    ]
+  },
+  {
+    id:'health', act:'🏠 Act 2 · How You Live',
+    fact:'"Self-rated health is one of the most powerful predictors of actual health outcomes — stronger than many clinical measures." — WHO',
+    text:'How would you honestly rate your physical health?',
+    type:'options',
+    options:[
+      {emoji:'💪',text:'Excellent',sub:'I feel strong and energetic',score:100},
+      {emoji:'😊',text:'Good',sub:'Minor issues, generally well',score:75},
+      {emoji:'😐',text:'Fair',sub:'Manageable chronic issues',score:45},
+      {emoji:'😞',text:'Poor',sub:'Health significantly limits my life',score:15},
+    ]
+  },
+  {
+    id:'safety', act:'🏠 Act 2 · How You Live',
+    fact:'"Globally, 1 in 5 people live in countries affected by conflict or fragility." — World Bank 2023',
+    text:'How safe do you feel where you live?',
+    type:'options',
+    options:[
+      {emoji:'🛡️',text:'Very safe',sub:'No concerns about personal safety',score:100},
+      {emoji:'😌',text:'Mostly safe',sub:'Occasional minor concerns',score:72},
+      {emoji:'😟',text:'Sometimes unsafe',sub:'Regular safety concerns',score:38},
+      {emoji:'😨',text:'Unsafe',sub:'Safety is a daily reality',score:8},
+    ]
+  },
+  {
+    id:'freetime', act:'🏠 Act 2 · How You Live',
+    fact:'"Leisure time is one of the most unequally distributed resources on Earth. In low-income countries, the average adult works 3x more hours than in high-income nations." — OECD Better Life Index',
+    text:'How many hours of free time do you genuinely have on an average day?',
+    type:'options',
+    options:[
+      {emoji:'⏰',text:'Under 1 hour',sub:'Almost no time for myself',score:15},
+      {emoji:'🕐',text:'1 – 3 hours',sub:'',score:45},
+      {emoji:'🕓',text:'3 – 5 hours',sub:'',score:75},
+      {emoji:'🌅',text:'5+ hours',sub:'Rich in time',score:95},
+    ]
+  },
+  {
+    id:'health_insurance', act:'🛡️ Act 3 · Your Safety Net',
+    fact:'"At least 50% of the world\'s population cannot access essential health services. Medical bills push 100 million people into extreme poverty each year." — WHO 2023',
+    text:'Do you have health insurance coverage?',
+    type:'options',
+    options:[
+      {emoji:'🚫',text:'No insurance',sub:'Fully out of pocket',score:5},
+      {emoji:'🏢',text:'Covered through work or government',sub:'Basic but not my choice',score:60},
+      {emoji:'✅',text:'Personal insurance I chose',sub:'Proactively protected',score:80},
+      {emoji:'👨‍👩‍👧',text:'Me + my family covered',sub:'Full safety net',score:100},
+    ]
+  },
+  {
+    id:'savings', act:'🛡️ Act 3 · Your Safety Net',
+    fact:'"55% of the world\'s adults — 3.5 billion people — would struggle to come up with even $500 in an emergency." — World Bank Global Findex',
+    text:'If you lost your income tomorrow, how long could your savings carry you?',
+    type:'options',
+    options:[
+      {emoji:'😰',text:'No savings',sub:'I have nothing set aside',score:5},
+      {emoji:'😬',text:'Less than 3 months',sub:'Tight buffer',score:35},
+      {emoji:'😌',text:'3 – 6 months',sub:'Reasonable cushion',score:70},
+      {emoji:'💼',text:'6+ months',sub:'Solid emergency fund',score:100},
+    ]
+  },
+  {
+    id:'life_insurance', act:'🛡️ Act 3 · Your Safety Net',
+    fact:'"Only 3.5% of people in low-income countries have life insurance, compared to over 50% in high-income nations." — Swiss Re Institute',
+    text:'Do you have life or family financial protection?',
+    type:'options',
+    options:[
+      {emoji:'🚫',text:'No coverage',sub:'No safety net for dependents',score:5},
+      {emoji:'🏢',text:'Basic through employer or govt',sub:'Some protection exists',score:50},
+      {emoji:'📋',text:'Personal life insurance',sub:'Chosen protection',score:80},
+      {emoji:'👨‍👩‍👧‍👦',text:'Comprehensive family coverage',sub:'Family fully protected',score:100},
+    ]
+  },
+  {
+    id:'education', act:'❤️ Act 4 · How You Feel',
+    fact:'"Education is the most powerful multiplier of lifetime earnings, health, and social mobility known to humanity." — UN Education Report',
+    text:'What is your highest level of education?',
+    type:'options',
+    options:[
+      {emoji:'📚',text:'No formal education',sub:'',score:15},
+      {emoji:'🏫',text:'School level (up to age 18)',sub:'',score:45},
+      {emoji:'🎓',text:'College or university degree',sub:'',score:75},
+      {emoji:'🔬',text:'Postgraduate (Masters / PhD)',sub:'',score:95},
+    ]
+  },
+  {
+    id:'connection', act:'❤️ Act 4 · How You Feel',
+    fact:'"Social isolation is as dangerous to health as smoking 15 cigarettes a day. Strong relationships are the #1 predictor of happiness worldwide." — World Happiness Report',
+    text:'Do you have people you can genuinely rely on?',
+    type:'options',
+    options:[
+      {emoji:'🫂',text:'Strong support system',sub:'Family, friends, real community',score:100},
+      {emoji:'👥',text:'Some people',sub:'A few I can count on',score:65},
+      {emoji:'🚶',text:'Mostly alone',sub:'Limited real connections',score:30},
+      {emoji:'💔',text:'Completely alone',sub:'No one to turn to',score:5},
+    ]
+  },
+  {
+    id:'happiness', act:'❤️ Act 4 · How You Feel',
+    fact:'"The happiest countries score high not just on wealth, but on freedom, social support, and the absence of corruption." — World Happiness Report 2024',
+    text:'When you look at your life right now — honestly — how do you feel?',
+    type:'options',
+    options:[
+      {emoji:'🌟',text:'Thriving',sub:'Life feels good and full of possibility',score:100},
+      {emoji:'😊',text:'Content',sub:'Generally okay, can\'t complain',score:72},
+      {emoji:'😔',text:'Struggling',sub:'Things are hard right now',score:35},
+      {emoji:'💙',text:'Really hard',sub:'Life feels heavy and difficult',score:10},
+    ]
+  }
+];
+
+// ── NAME LOGIC ──
+function setNameMode(mode) {
+  nameMode = mode;
+  document.querySelectorAll('.name-tab').forEach((t,i) => t.classList.toggle('active', ['real','random','custom'][i]===mode));
+  document.getElementById('name-real').style.display = mode==='real'?'block':'none';
+  document.getElementById('name-random').style.display = mode==='random'?'block':'none';
+  document.getElementById('name-custom').style.display = mode==='custom'?'block':'none';
+  if(mode==='random') renderRandomNames();
+  if(mode==='custom') { userName='Earthling'; document.getElementById('custom-name-input').value=''; }
+}
+function renderRandomNames() {
+  const el = document.getElementById('random-names');
+  el.innerHTML = RANDOM_NAMES.map(n=>`<button class="random-name-pill" onclick="pickRandom('${n}')">${n}</button>`).join('');
+}
+function pickRandom(name) {
+  userName = name;
+  document.querySelectorAll('.random-name-pill').forEach(p=>p.classList.toggle('selected',p.textContent===name));
+}
+function updateName(val) { userName = val.trim() || 'Earthling'; }
+
+// ── LOCATION ──
+let selectedCountry = null;
+let selectedCurrency = 'USD';
+
+function requestLocation() {
+  if(!navigator.geolocation){ skipLocation(); return; }
+  navigator.geolocation.getCurrentPosition(pos=>{
+    // Use reverse geocoding approximation via timezone
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const guessed = guessCountryFromTZ(tz);
+    if(guessed){ detectedCountry=guessed; selectedCountry=guessed; autoSetCurrency(guessed); }
+    skipLocation();
+  }, ()=>skipLocation());
+}
+function guessCountryFromTZ(tz) {
+  const map = {
+    'Asia/Kolkata':'India','Asia/Mumbai':'India','America/New_York':'United States',
+    'America/Los_Angeles':'United States','America/Chicago':'United States',
+    'Europe/London':'United Kingdom','Europe/Paris':'France','Europe/Berlin':'Germany',
+    'Asia/Tokyo':'Japan','Asia/Shanghai':'China','Asia/Singapore':'Singapore',
+    'Australia/Sydney':'Australia','America/Sao_Paulo':'Brazil',
+    'Asia/Dubai':'United Arab Emirates','Africa/Lagos':'Nigeria',
+    'Asia/Dhaka':'Bangladesh','Asia/Karachi':'Pakistan','Asia/Jakarta':'Indonesia',
+    'America/Toronto':'Canada','Europe/Moscow':'Russia','Asia/Seoul':'South Korea',
+    'Asia/Bangkok':'Thailand','Africa/Cairo':'Egypt','Europe/Madrid':'Spain',
+    'Europe/Rome':'Italy','Europe/Amsterdam':'Netherlands',
+  };
+  return map[tz] || null;
+}
+function autoSetCurrency(country) {
+  const cur = CURRENCIES.find(c=>c.countries.includes(country));
+  if(cur) selectedCurrency = cur.code;
+}
+function skipLocation() { /* proceed, country will be asked in Q1 */ }
+
+// ── QUIZ ──
+function startQuiz() {
+  if(nameMode==='real') userName = document.getElementById('real-name-input').value.trim() || 'Earthling';
+  if(nameMode==='custom') userName = document.getElementById('custom-name-input').value.trim() || 'Earthling';
+  currentQ = 0; answers = {};
+  showScreen('screen-question');
+  renderQuestion();
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  const el = document.getElementById(id);
+  el.classList.add('active');
+  // re-trigger animation
+  el.style.animation='none'; el.offsetHeight;
+  el.style.animation='';
+}
+
+function renderQuestion() {
+  const q = QUESTIONS[currentQ];
+  document.getElementById('q-act-label').textContent = q.act;
+  document.getElementById('q-counter').textContent = `${currentQ+1} / ${QUESTIONS.length}`;
+  document.getElementById('q-progress-fill').style.width = `${(currentQ/QUESTIONS.length)*100}%`;
+  document.getElementById('q-fact').textContent = q.fact;
+  document.getElementById('q-text').textContent = q.text;
+  const body = document.getElementById('q-body');
+  body.innerHTML = '';
+  const btn = document.getElementById('btn-next');
+  btn.classList.remove('ready');
+
+  if(q.type==='country') {
+    let html = '';
+    if(detectedCountry) html += `<div class="detected-country" onclick="selectCountry('${detectedCountry}')">📍 Detected: <strong>${detectedCountry}</strong> — tap to confirm</div>`;
+    html += `<input class="country-search" placeholder="Search country..." oninput="filterCountries(this.value)" id="country-search">`;
+    html += `<div class="country-grid" id="country-grid">`;
+    html += COUNTRIES.map(c=>`<button class="country-btn ${selectedCountry===c?'selected':''}" onclick="selectCountry('${c}')">${c}</button>`).join('');
+    html += `</div>`;
+    body.innerHTML = html;
+    if(selectedCountry) btn.classList.add('ready');
+  } else if(q.type==='income') {
+    let html = `<div class="currency-row"><span class="currency-label">💱 Currency:</span>
+      <select class="currency-select" id="currency-sel" onchange="changeCurrency(this.value)">
+        ${CURRENCIES.map(c=>`<option value="${c.code}" ${c.code===selectedCurrency?'selected':''}>${c.symbol} ${c.name}</option>`).join('')}
+      </select></div>`;
+    html += `<div class="q-options" id="income-opts">`;
+    html += getIncomeOptions();
+    html += `</div>`;
+    body.innerHTML = html;
+    if(answers[q.id]!==undefined) btn.classList.add('ready');
+  } else if(q.type==='options') {
+    const opts = q.options.map((o,i)=>`
+      <button class="q-option ${answers[q.id]===i?'selected':''}" onclick="selectOption(${i})">
+        <span class="q-option-emoji">${o.emoji}</span>
+        <div><div class="q-option-text">${o.text}</div>${o.sub?`<div class="q-option-sub">${o.sub}</div>`:''}
+        </div>
+      </button>`).join('');
+    body.innerHTML = `<div class="q-options">${opts}</div>`;
+    if(answers[q.id]!==undefined) btn.classList.add('ready');
+  }
+}
+
+function getIncomeOptions() {
+  const sym = CURRENCIES.find(c=>c.code===selectedCurrency)?.symbol || '$';
+  const rate = CURRENCY_PPP[selectedCurrency] || 1;
+  return INCOME_RANGES.map((r,i)=>{
+    const label = r.label.replace(/\{([\d,]+)\}/g, (m,n)=>{
+      const num = parseInt(n.replace(/,/g,''));
+      const converted = Math.round(num*rate);
+      return sym+(converted>=1000?Math.round(converted/1000)+'k':converted);
+    });
+    return `<button class="q-option ${answers['income']===i?'selected':''}" onclick="selectOption(${i})">
+      <span class="q-option-emoji">💰</span>
+      <div class="q-option-text">${label}</div>
+    </button>`;
+  }).join('');
+}
+
+function changeCurrency(code) {
+  selectedCurrency = code;
+  answers['income'] = undefined;
+  document.getElementById('income-opts').innerHTML = getIncomeOptions();
+  document.getElementById('btn-next').classList.remove('ready');
+}
+
+function filterCountries(val) {
+  const filtered = COUNTRIES.filter(c=>c.toLowerCase().includes(val.toLowerCase()));
+  document.getElementById('country-grid').innerHTML = filtered.map(c=>
+    `<button class="country-btn ${selectedCountry===c?'selected':''}" onclick="selectCountry('${c}')">${c}</button>`
+  ).join('');
+}
+
+function selectCountry(country) {
+  selectedCountry = country;
+  answers['country'] = country;
+  autoSetCurrency(country);
+  document.querySelectorAll('.country-btn').forEach(b=>b.classList.toggle('selected',b.textContent===country));
+  document.getElementById('btn-next').classList.add('ready');
+}
+
+function selectOption(idx) {
+  answers[QUESTIONS[currentQ].id] = idx;
+  document.querySelectorAll('.q-option').forEach((b,i)=>b.classList.toggle('selected',i===idx));
+  document.getElementById('btn-next').classList.add('ready');
+}
+
+function nextQuestion() {
+  currentQ++;
+  if(currentQ >= QUESTIONS.length) { showCalculating(); return; }
+  showScreen('screen-question');
+  setTimeout(renderQuestion, 50);
+}
+
+// ── CALCULATING ──
+function showCalculating() {
+  showScreen('screen-calc');
+  const steps = [
+    'Querying World Happiness Report data…',
+    'Cross-referencing UN HDI scores…',
+    'Applying World Bank income percentiles…',
+    'Checking WHO air & water indices…',
+    'Weighing your safety net against global benchmarks…',
+    'Calculating your position among 8,047,923,011 people…'
+  ];
+  const container = document.getElementById('calc-steps');
+  container.innerHTML = '';
+  steps.forEach((s,i)=>{
+    setTimeout(()=>{
+      const el = document.createElement('div');
+      el.className='calc-step'; el.textContent='✓ '+s;
+      container.appendChild(el);
+    }, i*520);
+  });
+  setTimeout(()=>{ showResult(); }, steps.length*520+600);
+}
+
+// ── SCORING ──
+function calcScores() {
+  const cd = getCountryData(selectedCountry||'DEFAULT');
+
+  const dims = {};
+
+  // Financial (income + savings)
+  const incomeScore = INCOME_RANGES[answers['income']??0].score;
+  const savingsScore = QUESTIONS.find(q=>q.id==='savings').options[answers['savings']??0].score;
+  dims.financial = Math.round(incomeScore*0.65 + savingsScore*0.35);
+
+  // Environment (country HDI air + water + food)
+  const waterScore = QUESTIONS.find(q=>q.id==='water').options[answers['water']??1].score;
+  const foodScore = QUESTIONS.find(q=>q.id==='food').options[answers['food']??1].score;
+  dims.environment = Math.round(cd.air*0.4 + waterScore*0.35 + foodScore*0.25);
+
+  // Health & Safety Net
+  const healthScore = QUESTIONS.find(q=>q.id==='health').options[answers['health']??1].score;
+  const hInsScore = QUESTIONS.find(q=>q.id==='health_insurance').options[answers['health_insurance']??0].score;
+  const lInsScore = QUESTIONS.find(q=>q.id==='life_insurance').options[answers['life_insurance']??0].score;
+  dims.health = Math.round(healthScore*0.4 + cd.health*0.25 + hInsScore*0.2 + lInsScore*0.15);
+
+  // Opportunity (education + country HDI)
+  const eduScore = QUESTIONS.find(q=>q.id==='education').options[answers['education']??1].score;
+  dims.opportunity = Math.round(eduScore*0.55 + cd.hdi*0.45);
+
+  // Safety
+  const safetyScore = QUESTIONS.find(q=>q.id==='safety').options[answers['safety']??1].score;
+  dims.safety = safetyScore;
+
+  // Wellbeing (happiness + connection + leisure)
+  const happyScore = QUESTIONS.find(q=>q.id==='happiness').options[answers['happiness']??1].score;
+  const connScore = QUESTIONS.find(q=>q.id==='connection').options[answers['connection']??1].score;
+  const ftScore = QUESTIONS.find(q=>q.id==='freetime').options[answers['freetime']??1].score;
+  dims.wellbeing = Math.round(happyScore*0.45 + connScore*0.35 + ftScore*0.2);
+
+  // Overall weighted
+  const overall = Math.round(
+    dims.financial*0.22 + dims.environment*0.18 + dims.health*0.20 +
+    dims.opportunity*0.15 + dims.safety*0.12 + dims.wellbeing*0.13
+  );
+
+  return { dims, overall };
+}
+
+// ── RESULT ──
+const QUIPS = [
+  [90, ["9 out of 10 people on Earth have it harder than you. Use that well.", "Most people on this planet would love your life. That's not a small thing.", "You hit the global jackpot. Clean water, safety, money. Most people dream of this."]],
+  [75, ["Better than 3 out of 4 people alive right now. That's genuinely good.", "You're doing well by any global measure. A few tweaks and you climb higher.", "Most people would look at your life and call it a win."]],
+  [55, ["Half the world envies you. The other half has it easier. You're right in the mix.", "Middle of the pack globally. Small changes here move the needle fast.", "Average on a world scale — which still means billions have it harder than you."]],
+  [35, ["Life has dealt you a tougher hand than most. The data confirms it.", "You're carrying more weight than the average person on Earth.", "Below the halfway mark — but the distance between here and better is smaller than it feels."]],
+  [0, ["The world has genuinely not been kind to you. That matters.", "You're dealing with things most people never face. You deserve more.", "Hardest end of the scale. Every small improvement from here counts double."]]
+];
+
+function getQuip(score) {
+  for(const [threshold, quips] of QUIPS) {
+    if(score >= threshold) return quips[Math.floor(Math.random()*quips.length)];
+  }
+  return QUIPS[QUIPS.length-1][1][0];
+}
+
+const DIM_META = {
+  financial:{ label:'💰 Financial', color:'#4f8eff' },
+  environment:{ label:'🌿 Environment & Resources', color:'#34d399' },
+  health:{ label:'🏥 Health & Safety Net', color:'#fb923c' },
+  opportunity:{ label:'📚 Opportunity', color:'#a78bfa' },
+  safety:{ label:'🛡️ Personal Safety', color:'#f472b6' },
+  wellbeing:{ label:'❤️ Wellbeing & Connection', color:'#fbbf24' },
+};
+
+const DIM_QUIPS = {
+  financial: s=> s>=80?'Your money situation puts you ahead of most people alive. That buys real security.'
+    :s>=55?'Not rich, not struggling — somewhere in the middle by world standards.'
+    :'Money is tight compared to most. This is the one area that can change fastest.',
+  environment: s=> s>=80?'Clean air, safe water, enough food. Over 2 billion people don\'t have all three.'
+    :s>=50?'Your environment is liveable but not great. It\'s quietly costing you energy.'
+    :'Bad air, water, or food issues add up over time. This one affects everything else.',
+  health: s=> s>=80?'Healthy body, covered by insurance — you\'re protected if things go wrong.'
+    :s>=50?'Doing okay health-wise, but if something big happened, you might be exposed.'
+    :'This is your biggest weak spot. One health event without cover can wipe everything.',
+  opportunity: s=> s>=80?'Good education and a country that gives you options. Doors are open for you.'
+    :s>=50?'Some doors are open, some aren\'t. Skills you learn yourself can change this.'
+    :'Fewer opportunities than most — but the internet has made self-education free.',
+  safety: s=> s>=80?'You feel safe where you live. That\'s a bigger deal than most people realise.'
+    :s>=50?'Mostly safe, but not completely. That background stress adds up.'
+    :'Not feeling safe where you live drains you in ways that are hard to measure.',
+  wellbeing: s=> s>=80?'Good relationships, happiness, free time — this is what a good life actually feels like.'
+    :s>=50?'Life is okay. But connection and rest are worth putting on the priority list.'
+    :'Feeling isolated or unhappy? This matters more than any other number on this page.',
+};
+
+function getActionCards(dims, overall) {
+  const cards = [];
+  const sorted = Object.entries(dims).sort((a,b)=>a[1]-b[1]);
+  const [lowest1, lowest2] = sorted;
+
+  if(dims.health < 60) cards.push({
+    icon:'🛡️', title:'Get Health Cover — Seriously',
+    text:'One hospital visit without insurance can cost more than a year\'s salary. It\'s the single fastest way to go from okay to broke. Even a basic plan changes everything.',
+    link:'Search: "affordable health insurance [your country]" →'
+  });
+  if(dims.financial < 50 || dims.savings < 40) cards.push({
+    icon:'💸', title:'Save One Month\'s Expenses — Just That',
+    text:'Don\'t think big. Just save enough to cover one bad month. That alone puts you ahead of half the world and removes the kind of stress that ruins sleep.',
+    link:'Search: "how to start an emergency fund on low income" →'
+  });
+  if(dims.environment < 50) cards.push({
+    icon:'🌿', title:'Your Air Quality Is Hurting You',
+    text:'If you live in a high-pollution area, you\'re losing 1–3 years of life on average — quietly, invisibly. A basic air purifier at home makes a real difference.',
+    link:'Search: "IQAir air quality [your city]" →'
+  });
+  if(dims.wellbeing < 55) cards.push({
+    icon:'❤️', title:'Talk to Someone — Anyone',
+    text:'Loneliness is as bad for your body as smoking. You don\'t need a therapist or a big social life. Just one person you can be honest with changes the whole picture.',
+    link:'Search: "community groups near me" →'
+  });
+  if(dims.opportunity < 55) cards.push({
+    icon:'📚', title:'One Free Course Could Change Your Income',
+    text:'Skills like coding, design, or data analysis can be learned free online — and add thousands to your yearly income. You don\'t need a degree. You need 30 minutes a day.',
+    link:'Search: "free courses Coursera edX" →'
+  });
+  if(dims.financial < 70 && !cards.find(c=>c.icon==='💸')) cards.push({
+    icon:'💼', title:'Life Insurance Costs Less Than You Think',
+    text:'A basic plan to protect your family costs about the same as a coffee a day. If something happened to you tomorrow, would the people you love be okay financially?',
+    link:'Search: "term life insurance [your country]" →'
+  });
+
+  return cards.slice(0,3);
+}
+
+function showResult() {
+  const {dims, overall} = calcScores();
+  showScreen('screen-result');
+
+  // Score display
+  document.getElementById('result-score-big').textContent = `Better than ${overall}% of Earth`;
+
+  // Village
+  const villageCount = Math.round(overall);
+  document.getElementById('result-village').innerHTML =
+    `Picture Earth as a village of <strong>100 people</strong>. <strong>${villageCount} of them</strong> would genuinely want to swap lives with <strong>${userName}</strong>. The other ${100-villageCount} have it better.`;
+
+  // Village grid
+  const grid = document.getElementById('village-grid');
+  grid.innerHTML = Array.from({length:100},(_,i)=>{
+    const isYou = i === villageCount;
+    const isBetter = i < villageCount;
+    const emoji = isYou ? '🧑' : isBetter ? '👤' : '👤';
+    return `<span class="village-person" style="opacity:${isBetter?'0.9':'0.25'};${isYou?'font-size:18px':''};" title="${isYou?`You're here!`:''}">${emoji}</span>`;
+  }).join('');
+
+  // Quip
+  document.getElementById('result-quip').textContent = getQuip(overall);
+
+  // Orb color based on score
+  const hue = Math.round(overall*1.2+180);
+  document.getElementById('result-orb').style.background =
+    `radial-gradient(circle at 35% 35%, hsl(${hue},90%,75%), hsl(${hue},70%,45%) 40%, hsl(${hue},50%,15%) 75%)`;
+
+  // Dimensions
+  const grid2 = document.getElementById('dim-grid');
+  grid2.innerHTML = Object.entries(dims).map(([key,score])=>{
+    const meta = DIM_META[key];
+    return `<div class="dim-item">
+      <div class="dim-row">
+        <div class="dim-name">${meta.label}</div>
+        <div class="dim-score-label">Better than ${score}%</div>
+      </div>
+      <div class="dim-bar-track"><div class="dim-bar-fill" style="width:0%;background:${meta.color}" data-w="${score}"></div></div>
+      <div class="dim-quip">${DIM_QUIPS[key](score)}</div>
+    </div>`;
+  }).join('');
+
+  // Animate bars
+  setTimeout(()=>{
+    document.querySelectorAll('.dim-bar-fill').forEach(el=>{
+      el.style.width = el.dataset.w + '%';
+    });
+  }, 200);
+
+  // Action cards
+  const cards = getActionCards(dims, overall);
+  document.getElementById('action-cards').innerHTML = cards.map(c=>`
+    <div class="action-card">
+      <div class="action-card-icon">${c.icon}</div>
+      <div class="action-card-body">
+        <div class="action-card-title">${c.title}</div>
+        <div class="action-card-text">${c.text}</div>
+        <span class="action-card-link">${c.link} →</span>
+      </div>
+    </div>`).join('');
+}
+
+function retake() {
+  answers = {}; currentQ = 0; selectedCountry = null;
+  showScreen('screen-welcome');
+}
+
+function toggleTheme() {
+  document.body.classList.toggle('light');
+  document.querySelector('.theme-toggle').textContent = document.body.classList.contains('light') ? '🌙 Dark' : '☀️ Light';
+}
+
+// Init random names
+renderRandomNames();
+
+// ── MODAL ──
+function openSourcesModal() {
+  document.getElementById('sources-modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeSourcesModal() {
+  document.getElementById('sources-modal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+function closeModal(e) {
+  if(e.target === document.getElementById('sources-modal')) closeSourcesModal();
+}
+document.addEventListener('keydown', e => { if(e.key === 'Escape') closeSourcesModal(); });
+</script>
+</body>
+</html>
